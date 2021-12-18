@@ -4,11 +4,19 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
 import com.udacity.project4.R
+import com.udacity.project4.locationreminders.RemindersActivity
 import kotlinx.android.synthetic.main.activity_authentication.*
 
 /**
@@ -20,18 +28,28 @@ class AuthenticationActivity : AppCompatActivity() {
     val SIGN_IN_REQUEST_CODE = 1001
     val TAG = "AuthenticationActivity"
 
+    // Get a reference to the ViewModel scoped to this Fragment
+    private val viewModel by viewModels<LoginViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_authentication)
 
-//      TODO: Implement the create account and sign in using FirebaseUI, use sign in using email and sign in using Google
+        //Sign user out with application starts.
+        FirebaseAuth.getInstance().signOut()
+
+        //Implement the create account and sign in using FirebaseUI, use sign in using email and sign in using Google
         buttonLogin.setOnClickListener {
             launchSignInFlow()
         }
 
+        buttonSignOut.setOnClickListener{
+            signUserOut()
+        }
 
 
 //          TODO: If the user was authenticated, send him to RemindersActivity
+        observeAuthenticationState()
 
 //          TODO: a bonus is to customize the sign in flow to look nice using :
         //https://github.com/firebase/FirebaseUI-Android/blob/master/auth/README.md#custom-layout
@@ -77,4 +95,34 @@ class AuthenticationActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * Observes the authentication state and changes the UI accordingly.
+     */
+    private fun observeAuthenticationState() {
+
+        viewModel.authenticationState.observe(this, Observer { authenticationState ->
+            when (authenticationState) {
+                LoginViewModel.AuthenticationState.AUTHENTICATED -> {
+
+                    //If the user is logged in,
+                    Log.i(TAG, "User is authenticated")
+                    loginStatusTextView.setText("User is authenticated ${FirebaseAuth.getInstance().currentUser?.displayName}!")
+
+                    val intent = Intent(this, RemindersActivity::class.java)
+                    startActivity(intent)
+
+                }
+                else -> {
+                    // If there is no logged-in user,
+                    Log.i(TAG, "User is NOT authenticated")
+                    loginStatusTextView.setText("User is NOT authenticated")
+                    buttonSignOut.visibility = View.INVISIBLE
+                }
+            }
+        })
+    }
+
+    fun signUserOut() {
+        AuthUI.getInstance().signOut(applicationContext)
+    }
 }
