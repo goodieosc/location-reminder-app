@@ -36,7 +36,7 @@ class AuthenticationActivity : AppCompatActivity() {
         setContentView(R.layout.activity_authentication)
 
         //Sign user out with application starts.
-        FirebaseAuth.getInstance().signOut()
+        //FirebaseAuth.getInstance().signOut()
 
         //Implement the create account and sign in using FirebaseUI, use sign in using email and sign in using Google
         buttonLogin.setOnClickListener {
@@ -47,8 +47,7 @@ class AuthenticationActivity : AppCompatActivity() {
             signUserOut()
         }
 
-
-//          TODO: If the user was authenticated, send him to RemindersActivity
+        //If the user was authenticated, send him to RemindersActivity
         observeAuthenticationState()
 
 //          TODO: a bonus is to customize the sign in flow to look nice using :
@@ -77,7 +76,8 @@ class AuthenticationActivity : AppCompatActivity() {
         // If users choose to register with their email,
         // they will need to create a password as well.
         val providers = arrayListOf(
-            AuthUI.IdpConfig.EmailBuilder().build(), AuthUI.IdpConfig.GoogleBuilder().build()
+            AuthUI.IdpConfig.EmailBuilder().build(),
+            AuthUI.IdpConfig.GoogleBuilder().build()
 
             // This is where you can provide more ways for users to register and
             // sign in.
@@ -90,6 +90,7 @@ class AuthenticationActivity : AppCompatActivity() {
             AuthUI.getInstance()
                 .createSignInIntentBuilder()
                 .setAvailableProviders(providers)
+                .setLogo(R.drawable.map)
                 .build(),
             SIGN_IN_REQUEST_CODE
         )
