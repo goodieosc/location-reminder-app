@@ -12,6 +12,7 @@ import android.content.Intent
  * and handle the geofencing in the background.
  * To do that you can use https://developer.android.com/reference/android/support/v4/app/JobIntentService to do that.
  *
+ * Note: The broadcast receiver is how Android apps can send or receive broadcast messages from the Android system and other Android apps.
  */
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {

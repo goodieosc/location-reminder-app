@@ -2,9 +2,14 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -21,6 +26,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PointOfInterest
+import com.google.android.material.snackbar.Snackbar
+import com.udacity.project4.BuildConfig
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -134,6 +141,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //Enable location tracking
         enableMyLocation()
 
+
         //Move map to current location
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location : Location? ->
@@ -157,6 +165,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             binding.buttonSave.visibility = View.VISIBLE
         }
     }
+
+
+
 
     @SuppressLint("MissingPermission")
     private fun enableMyLocation() {
