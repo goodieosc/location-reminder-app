@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit
 private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
-private const val TAG = "SaveReminderFragment"
+private const val TAG = "GeoFenceLogs"
 private const val LOCATION_PERMISSION_INDEX = 0
 private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
 
@@ -65,6 +65,8 @@ class SaveReminderFragment : BaseFragment() {
         intent.action = ACTION_GEOFENCE_EVENT
         PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
+
+    private lateinit var geofenceList: MutableList<Geofence>
 
     private lateinit var geofencingClient: GeofencingClient
 
@@ -110,7 +112,7 @@ class SaveReminderFragment : BaseFragment() {
 
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
-            requestForegroundAndBackgroundLocationPermissions()
+            requestForegroundAndBackgroundLocationPermissions() //Function then calls another  function to add geofence.
 
             _viewModel.navigationCommand.value =
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
@@ -183,7 +185,7 @@ class SaveReminderFragment : BaseFragment() {
                 true
             }
 
-        Log.i(TAG, "$foregroundLocationApproved $backgroundPermissionApproved")
+        Log.i(TAG, "Foreground permissions approved: $foregroundLocationApproved || Bakground permissions approved: $backgroundPermissionApproved")
         //Return true if the permissions are granted and false if not.
         return foregroundLocationApproved && backgroundPermissionApproved
     }
@@ -319,7 +321,7 @@ class SaveReminderFragment : BaseFragment() {
                 Toast.makeText(requireActivity(), R.string.geofences_not_added,
                     Toast.LENGTH_SHORT).show()
                 if ((it.message != null)) {
-                    Log.i(TAG, it.message!!)
+                    Log.i(TAG,"Error adding geofence: ${it.message!!}")
                 }
             }
         }
@@ -329,7 +331,6 @@ class SaveReminderFragment : BaseFragment() {
         internal const val ACTION_GEOFENCE_EVENT =
             "HuntMainActivity.treasureHunt.action.ACTION_GEOFENCE_EVENT"
     }
-
 
 }
 

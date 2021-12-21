@@ -46,6 +46,8 @@ data class ZoomLevel(
     val BUILDING: Float = 20f
 )
 
+private const val TAG = "TrackLocation"
+
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     //Use Koin to get the view model of the SaveReminder
@@ -166,16 +168,15 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
-
-
-
     @SuppressLint("MissingPermission")
     private fun enableMyLocation() {
 
         if (isPermissionGranted()) {
             map.setMyLocationEnabled(true)
+            Log.i(TAG,"Permission granted to location")
         }
         else {
+            Log.i(TAG,"Requesting location permissions")
             ActivityCompat.requestPermissions(
                 requireActivity(),
                 arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -190,9 +191,15 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         grantResults: IntArray) {
         // Check if location permissions are granted and if so enable the
         // location data layer.
+        Log.i(TAG,"Reviewing permission request result...")
+        Log.i(TAG, requestCode.toString())
+
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
             if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 enableMyLocation()
+                Log.i(TAG,"Location permission granted")
+            } else {
+                Log.i(TAG,"Location permission NOT granted")
             }
         }
     }
