@@ -9,6 +9,7 @@ import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingEvent
 import com.udacity.project4.R
+import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
@@ -68,23 +69,27 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
     }
 
     //TODO: get the request id of the current geofence
-    private fun sendNotification(triggeringGeofences: List<Geofence>) {
+       private fun sendNotification(triggeringGeofences: List<Geofence>) {
+
         Log.i(TAG,"Sending notification ${triggeringGeofences}")
 
+        for (i in triggeringGeofences) {
+            val id = i.requestId
+            val remindersRepository: ReminderDataSource by inject()
 
-        //Get the local repository instance
-        val remindersLocalRepository: RemindersLocalRepository by inject()
-
-        //Interaction to the repository has to be through a coroutine scope
-        CoroutineScope(coroutineContext).launch(SupervisorJob()) {
-
-            for (i in triggeringGeofences) {
-
-            //get the reminder with the request id
-                val result = remindersLocalRepository.getReminder(i.toString())
-
+            CoroutineScope(coroutineContext).launch(SupervisorJob()) {
+                //get the reminder with the request id
+                val result = remindersRepository.getReminder(id)
                 if (result is Result.Success<ReminderDTO>) {
                     val reminderDTO = result.data
+
+                    Log.i(TAG,"Title: ${reminderDTO.title}" )
+                    Log.i(TAG,"Description: ${reminderDTO.description}" )
+                    Log.i(TAG,"Location: ${reminderDTO.location}" )
+                    Log.i(TAG,"Latitude: ${reminderDTO.latitude}" )
+                    Log.i(TAG,"Longitude: ${reminderDTO.longitude}" )
+                    Log.i(TAG,"ID: ${reminderDTO.id}" )
+
                     //send a notification to the user with the reminder details
                     sendNotification(
                         this@GeofenceTransitionsJobIntentService, ReminderDataItem(
@@ -94,9 +99,9 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                             reminderDTO.latitude,
                             reminderDTO.longitude,
                             reminderDTO.id
-                            )
                         )
-                    }
+                    )
+                }
             }
         }
     }
