@@ -29,5 +29,17 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <TextView
+            android:id="@+id/textViewReminderTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Reminder Name" />
+
+        <TextView
+            android:id="@+id/textViewReminderDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Reminder Details" />
+
     </LinearLayout>
 </layout>
