@@ -3,32 +3,35 @@ package com.udacity.project4.locationreminders.reminderslist
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
+import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
+import org.bouncycastle.asn1.ocsp.ServiceLocator
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 import org.junit.runner.RunWith
-
+import org.koin.core.context.stopKoin
 
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
 class RemindersListViewModelTest {
 
-    //lateinit var fakeDataItemList: MutableList<ReminderDTO>
     lateinit var fakeDataSource: FakeDataSource
     lateinit var remindersListViewModel: RemindersListViewModel
 
     @get:Rule
-    var coroutineRule = CoroutineRule()
+    var coroutineRule = MainCoroutineRule()
 
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
@@ -39,6 +42,11 @@ class RemindersListViewModelTest {
         //Given: the fake data source created in @Before and injected into the view model
         fakeDataSource = FakeDataSource(fakeReminders())
         remindersListViewModel = RemindersListViewModel(ApplicationProvider.getApplicationContext(),fakeDataSource)
+    }
+
+    @After
+    fun tearDown() {
+        stopKoin()
     }
 
     private fun fakeReminders(): MutableList<ReminderDTO> {
@@ -75,20 +83,3 @@ class RemindersListViewModelTest {
     }
 
 }
-
-@ExperimentalCoroutinesApi
-class CoroutineRule(val dispatcher: TestCoroutineDispatcher = TestCoroutineDispatcher()):
-    TestWatcher(),
-    TestCoroutineScope by TestCoroutineScope(dispatcher) {
-    override fun starting(description: Description?) {
-        super.starting(description)
-        Dispatchers.setMain(dispatcher)
-    }
-
-    override fun finished(description: Description?) {
-        super.finished(description)
-        cleanupTestCoroutines()
-        Dispatchers.resetMain()
-    }
-}
-

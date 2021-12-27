@@ -1,16 +1,40 @@
 package com.udacity.project4
 
+import android.app.Activity
 import android.app.Application
+import android.os.Bundle
+import androidx.core.os.bundleOf
+import androidx.fragment.app.testing.launchFragmentInContainer
+import androidx.lifecycle.Lifecycle
+import androidx.navigation.NavController
+import androidx.navigation.Navigation
+import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.IdlingRegistry
+import androidx.test.espresso.action.ViewActions.*
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
+import androidx.test.espresso.matcher.ViewMatchers
+import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
+import com.udacity.project4.locationreminders.reminderslist.ReminderListFragment
+import com.udacity.project4.locationreminders.reminderslist.ReminderListFragmentDirections
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
+import com.udacity.project4.util.DataBindingIdlingResource
+import com.udacity.project4.util.monitorActivity
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
+import org.junit.After
 import org.junit.Before
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
@@ -18,6 +42,8 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -63,9 +89,44 @@ class RemindersActivityTest :
         runBlocking {
             repository.deleteAllReminders()
         }
+
+
+
     }
 
 
 //    TODO: add End to End testing to the app
 
+    @After
+    fun after() {
+
+    }
+
+
+    @ExperimentalCoroutinesApi
+    @Test
+    fun check_reminders_screen_layout_and_FAB_click() = runBlockingTest {
+
+        // Given: We open the ReminderListFragment
+        val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
+
+        val navController = mock(NavController::class.java)
+        scenario.onFragment {
+            Navigation.setViewNavController(it.view!!, navController)
+        }
+
+        //When:
+        onView(withId(R.id.reminderssRecyclerView)).check(matches(isDisplayed())) //Check recyclerview is present
+        onView(withId(R.id.addReminderFAB)).check(matches(isDisplayed())) //Check the FAB is shown
+        onView(withId(R.id.addReminderFAB)).perform(click()) //Click the FAB
+
+        // Then: Verify that we navigate to the save reminder fragment
+        verify(navController).navigate(ReminderListFragmentDirections.toSaveReminder())
+
+    }
 }
+
+
+
+
+
