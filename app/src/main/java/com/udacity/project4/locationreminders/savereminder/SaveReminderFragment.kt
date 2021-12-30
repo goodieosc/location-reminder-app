@@ -89,24 +89,38 @@ class SaveReminderFragment : BaseFragment() {
         }
 
         binding.saveReminder.setOnClickListener {
-            title = _viewModel.reminderTitle.value.toString()
-            description = _viewModel.reminderDescription.value.toString()
-            location = _viewModel.reminderSelectedLocationStr.value.toString()
-            latitude = _viewModel.latitude.value!!
-            longitude = _viewModel.longitude.value!!
+            if(binding.reminderTitle.text.isEmpty() ||
+               binding.reminderDescription.text.isEmpty() ||
+               binding.selectedLocation.text.isEmpty()) {
+                val snack = Snackbar.make(it,"Incomplete entry",Snackbar.LENGTH_LONG)
+                snack.show()
+            } else {
 
-            val reminder = ReminderDataItem(title,description,location,latitude,longitude)
+                title = _viewModel.reminderTitle.value.toString()
+                description = _viewModel.reminderDescription.value.toString()
+                location = _viewModel.reminderSelectedLocationStr.value.toString()
+                latitude = _viewModel.latitude.value!!
+                longitude = _viewModel.longitude.value!!
 
-            reminderId = reminder.id
+                val snack = Snackbar.make(it,"Saving entry ${title}",Snackbar.LENGTH_LONG)
+                snack.show()
 
-            _viewModel.validateAndSaveReminder(reminder)
+                val reminder = ReminderDataItem(title,description,location,latitude,longitude)
+
+                reminderId = reminder.id
+
+                _viewModel.validateAndSaveReminder(reminder)
 
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
-            requestForegroundAndBackgroundLocationPermissions() //Function then calls another  function to add geofence.
+                requestForegroundAndBackgroundLocationPermissions() //Function then calls another  function to add geofence.
 
-            _viewModel.navigationCommand.value =
-                NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+                _viewModel.navigationCommand.value =
+                    NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+
+            }
+
+
 
         }
     }

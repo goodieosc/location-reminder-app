@@ -58,7 +58,7 @@ class RemindersListViewModelTest {
     }
 
     @Test
-    fun loadReminders_corutine_test()= runBlockingTest {
+    fun loadReminders_corutine_test()= coroutineRule.runBlockingTest {
 
         // When: The loadReminders function is called
         remindersListViewModel.loadReminders()
