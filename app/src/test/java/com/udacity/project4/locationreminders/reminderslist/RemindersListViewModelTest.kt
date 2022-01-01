@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
 import org.bouncycastle.asn1.ocsp.ServiceLocator
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
 import org.junit.Before
@@ -69,17 +70,31 @@ class RemindersListViewModelTest {
     }
 
     @Test
-    fun showLoading_liveData_test() {
-        //Given
-        coroutineRule.pauseDispatcher()
+    fun showLoading_liveData_test() = coroutineRule.runBlockingTest {
 
-        //When
+        // Make the repository return errors.
+//        fakeDataSource.setShouldReturnError(shouldReturn = true)
+//
+//        //Given
+//        coroutineRule.pauseDispatcher()
+//
+//        //When
+//        remindersListViewModel.loadReminders()
+//
+//        //Then
+//        assert(remindersListViewModel.showLoading.getOrAwaitValue() == true)
+////        coroutineRule.resumeDispatcher()
+////        assert(remindersListViewModel.showLoading.getOrAwaitValue() == false)
+
+
+        fakeDataSource.setShouldReturnError(true)
+
         remindersListViewModel.loadReminders()
 
-        //Then
-        assert(remindersListViewModel.showLoading.getOrAwaitValue() == true)
-        coroutineRule.resumeDispatcher()
-        assert(remindersListViewModel.showLoading.getOrAwaitValue() == false)
+        val hasError = remindersListViewModel.showSnackBar.getOrAwaitValue() == "Exception"
+
+        assertThat(hasError, `is`(false))
+
     }
 
 }

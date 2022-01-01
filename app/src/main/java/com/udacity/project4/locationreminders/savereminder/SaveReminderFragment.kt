@@ -16,7 +16,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
@@ -49,6 +52,8 @@ class SaveReminderFragment : BaseFragment() {
     var longitude: Double = 0.0
     private lateinit var reminderId: String
 
+    lateinit var reminder: ReminderDataItem
+
     //Check the API level. This is needed to determine how to check for location permissions depending on the API level.
     private val runningQOrLater = android.os.Build.VERSION.SDK_INT >=
             android.os.Build.VERSION_CODES.Q
@@ -76,6 +81,10 @@ class SaveReminderFragment : BaseFragment() {
         //instantiate the geofencingClient
         geofencingClient = LocationServices.getGeofencingClient(requireActivity())
 
+        _viewModel.showToast.observe(viewLifecycleOwner, Observer {
+            Toast.makeText(activity,it,Toast.LENGTH_LONG).show()
+        })
+
         return binding.root
     }
 
@@ -87,6 +96,7 @@ class SaveReminderFragment : BaseFragment() {
             _viewModel.navigationCommand.value =
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
         }
+
 
         binding.saveReminder.setOnClickListener {
             if(binding.reminderTitle.text.isEmpty() ||
@@ -105,18 +115,16 @@ class SaveReminderFragment : BaseFragment() {
                 val snack = Snackbar.make(it,"Saving entry ${title}",Snackbar.LENGTH_LONG)
                 snack.show()
 
-                val reminder = ReminderDataItem(title,description,location,latitude,longitude)
+                reminder = ReminderDataItem(title,description,location,latitude,longitude)
 
                 reminderId = reminder.id
 
-                _viewModel.validateAndSaveReminder(reminder)
-
-//            TODO: use the user entered reminder details to:
-//             1) add a geofencing request
                 requestForegroundAndBackgroundLocationPermissions() //Function then calls another  function to add geofence.
 
-                _viewModel.navigationCommand.value =
-                    NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+//                _viewModel.validateAndSaveReminder(reminder)
+
+//                _viewModel.navigationCommand.value =
+//                    NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
 
             }
 
@@ -160,11 +168,7 @@ class SaveReminderFragment : BaseFragment() {
         Log.i(TAG, "Permissions result code: ${resultCode}")
 
         //Request permissions passing in the current activity, the permissions array and the result code.
-        ActivityCompat.requestPermissions(
-            requireActivity(),
-            permissionsArray,
-            resultCode
-        )
+        requestPermissions(permissionsArray, resultCode)
     }
 
     //Check what permissions the app currently has for location settings.
@@ -254,17 +258,20 @@ class SaveReminderFragment : BaseFragment() {
         //add an onFailureListener() to the locationSettingsResponseTask.
         locationSettingsResponseTask.addOnFailureListener { exception ->
 
-            //Check if the exception is of type ResolvableApiException and if so, try calling the startResolutionForResult()
-            //method in order to prompt the user to turn on device location.
-            if (exception is ResolvableApiException && resolve){
-                try {
-                    exception.startResolutionForResult(requireActivity(),
-                        REQUEST_TURN_DEVICE_LOCATION_ON)
+        //Check if the exception is of type ResolvableApiException and if so, try calling the startResolutionForResult()
+        //method in order to prompt the user to turn on device location.
+        if (exception is ResolvableApiException && resolve){
+            try {
+                //Replaced with startIntentSenderForResult() as this is a Fragment, not an activity.
+//                    exception.startResolutionForResult(requireActivity(),
+//                        REQUEST_TURN_DEVICE_LOCATION_ON)
+                startIntentSenderForResult(exception.getResolution().getIntentSender(), REQUEST_TURN_DEVICE_LOCATION_ON, null, 0, 0, 0, null)
+
 
                 //If calling startResolutionForResult enters the catch block, print a log.
-                } catch (sendEx: IntentSender.SendIntentException) {
-                    Log.i(TAG, "Error getting location settings resolution: " + sendEx.message)
-                }
+            } catch (sendEx: IntentSender.SendIntentException) {
+                Log.i(TAG, "Error getting location settings resolution: " + sendEx.message)
+            }
 
             //If the exception is not of type ResolvableApiException, present a snackbar that alerts the user
             } else {
@@ -319,6 +326,7 @@ class SaveReminderFragment : BaseFragment() {
                     Toast.LENGTH_SHORT)
                     .show()
                 Log.i(TAG, "Geofence successfully added ${geofence.requestId}")
+                _viewModel.validateAndSaveReminder(reminder)
             }
 
             //If adding the geofences fails, present a toast letting the user know that there was an issue in adding the geofences.

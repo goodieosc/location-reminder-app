@@ -2,22 +2,14 @@ package com.udacity.project4
 
 import android.app.Activity
 import android.app.Application
-import android.os.Bundle
-import androidx.core.os.bundleOf
-import androidx.fragment.app.testing.launchFragmentInContainer
-import androidx.lifecycle.Lifecycle
-import androidx.navigation.NavController
-import androidx.navigation.Navigation
+import android.app.PendingIntent.getActivity
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
-import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
-import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.withDecorView
-import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -25,15 +17,12 @@ import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
-import com.udacity.project4.locationreminders.reminderslist.ReminderListFragment
-import com.udacity.project4.locationreminders.reminderslist.ReminderListFragmentDirections
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.monitorActivity
 import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.After
@@ -46,8 +35,10 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+
+import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.not
+
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -165,6 +156,38 @@ class RemindersActivityTest :
             .check(matches(withText("Incomplete entry")))
 
         activityScenario.close()
+    }
+
+    @Test
+    fun text_toast() {
+
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        onView(withId(R.id.addReminderFAB)).perform(click())
+        onView(withId(R.id.reminderTitle)).perform(replaceText("test title"))
+        onView(withId(R.id.reminderDescription)).perform(replaceText("test description"))
+        onView(withId(R.id.selectLocation)).perform(click())
+
+        //Select any location on map
+        onView(withId(R.id.map)).perform(longClick())
+
+        onView(withId(R.id.saveReminder)).perform(click())
+
+        //Error: https://github.com/android/android-test/issues/803
+        onView(withText(R.string.reminder_saved))
+            .inRoot(withDecorView(not(`is`(getActivity(activityScenario)?.window?.decorView))))
+            .check(matches(isDisplayed()))
+
+    }
+
+    // get activity context
+    private fun getActivity(activityScenario: ActivityScenario<RemindersActivity>): Activity? {
+        var activity: Activity? = null
+        activityScenario.onActivity {
+            activity = it
+        }
+        return activity
     }
 
 
