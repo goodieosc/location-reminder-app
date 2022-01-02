@@ -71,30 +71,16 @@ class RemindersListViewModelTest {
 
     @Test
     fun showLoading_liveData_test() = coroutineRule.runBlockingTest {
-
-        // Make the repository return errors.
-//        fakeDataSource.setShouldReturnError(shouldReturn = true)
-//
-//        //Given
-//        coroutineRule.pauseDispatcher()
-//
-//        //When
-//        remindersListViewModel.loadReminders()
-//
-//        //Then
-//        assert(remindersListViewModel.showLoading.getOrAwaitValue() == true)
-////        coroutineRule.resumeDispatcher()
-////        assert(remindersListViewModel.showLoading.getOrAwaitValue() == false)
-
-
         fakeDataSource.setShouldReturnError(true)
-
         remindersListViewModel.loadReminders()
+        assertThat(remindersListViewModel.showSnackBar.getOrAwaitValue(), `is`("Reminders not found"))
+    }
 
-        val hasError = remindersListViewModel.showSnackBar.getOrAwaitValue() == "Exception"
-
-        assertThat(hasError, `is`(false))
-
+    @Test
+    fun loadReminders_error() = runBlockingTest {
+        fakeDataSource.deleteAllReminders()
+        remindersListViewModel.loadReminders()
+        assertThat(remindersListViewModel.showNoData.getOrAwaitValue(), `is`(true))
     }
 
 }

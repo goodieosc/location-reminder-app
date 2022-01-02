@@ -69,6 +69,18 @@ class SaveReminderViewModelTest {
     }
 
     @Test
+    fun check_loading() = coroutineRule.runBlockingTest{
+        coroutineRule.pauseDispatcher()
+
+        saveReminderViewModel.validateAndSaveReminder(fakeDataItem)
+        assertThat(saveReminderViewModel.showLoading.getOrAwaitValue(), `is`(true))
+
+        coroutineRule.resumeDispatcher()
+        assertThat(saveReminderViewModel.showLoading.getOrAwaitValue(), `is`(false))
+    }
+
+
+    @Test
     fun onClear_is_null() {
 
         saveReminderViewModel.apply {
